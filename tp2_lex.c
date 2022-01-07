@@ -95,7 +95,7 @@ void deleteLexData(TLex ** _lexData) {
  * \brief fonction qui affiche les donnees pour
  * l'analyseur lexical
  *
- * \param[in] _lexData donn�es de l'analyseur lexical
+ * \param[in] _lexData donnees de l'analyseur lexical
  * \return neant
  */
 void printLexData(TLex * _lexData) {
@@ -108,7 +108,7 @@ void printLexData(TLex * _lexData) {
  * \brief fonction qui ajoute un symbole entier a la table des symboles
  *
  * \param[inout] _lexData donnees de l'analyseur lexical
- * \param[in] _val valeur entiere e ajouter
+ * \param[in] _val valeur entiere a ajouter
  * \return neant
  */
 void addIntSymbolToLexData(TLex * _lexData, const int _val) {
