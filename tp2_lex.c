@@ -77,8 +77,12 @@ int isSep(const char _symb)
         return 1;
     case '\r': /* retour chariot */
         return 1;
-    /*case ',':
-        return 1;*/
+    case ',':
+        return 1;
+    case '{':
+        return 1;
+    case '}':
+        return 1;
     default:
         return 0;
     }
@@ -95,13 +99,12 @@ int isSep(const char _symb)
 TLex *initLexData(char *_data)
 {
     TLex *Truc = malloc(sizeof(TLex));
-    TSymbole *Truc2 = malloc(sizeof(TSymbole));
     Truc->data = malloc(sizeof(char) * strlen(_data) + 1);
     strcpy(Truc->data, _data);
     Truc->startPos = Truc->data;
     Truc->nbLignes = 0;
     Truc->nbSymboles = 0;
-    Truc->tableSymboles = Truc2;
+    Truc->tableSymboles;
     Truc->tailleTableSymboles = 0;
     return Truc;
 }
@@ -116,7 +119,7 @@ TLex *initLexData(char *_data)
  */
 void deleteLexData(TLex **_lexData)
 {
-    /****** A ECRIRE *******/
+    /*mdr*/
 }
 
 /**
@@ -129,7 +132,19 @@ void deleteLexData(TLex **_lexData)
  */
 void printLexData(TLex *_lexData)
 {
-    /****** A ECRIRE *******/
+    printf("LexData:\n");
+    printf("data : %s\n",_lexData->data);
+    printf("startPos : %s\n",_lexData->startPos);
+    printf("nbLigne : %d\n",_lexData->nbLignes);
+    printf("nbSymboles : %d\n",_lexData->nbSymboles);
+    printf("tableSymboles :\n");
+    int i=0;
+    for (i=0 ; i<_lexData->tailleTableSymboles; i++)
+    {
+        if(_lexData->tableSymboles[i].type == JSON_STRING) printf("Chaine : %s\n",_lexData->tableSymboles[i].val.chaine);
+        else if(_lexData->tableSymboles[i].type == JSON_INT_NUMBER) printf("Entier : %d\n",_lexData->tableSymboles[i].val.entier);
+        else printf("Reel : %f\n",_lexData->tableSymboles[i].val.reel);
+    }
 }
 
 /**
@@ -142,7 +157,21 @@ void printLexData(TLex *_lexData)
  */
 void addIntSymbolToLexData(TLex *_lexData, const int _val)
 {
-    /****** A ECRIRE *******/
+    _lexData->tailleTableSymboles++;
+    TSymbole **NT=malloc(sizeof(TSymbole)*_lexData->tailleTableSymboles);
+    int i = 0;
+    if (_lexData->tailleTableSymboles>0)
+    {
+        for (i = 0; i <= _lexData->tailleTableSymboles-1; i++)
+        {
+                        NT[i]=*_lexData->tableSymboles;
+            _lexData->tableSymboles++;
+        }
+    }
+    NT[i].type = JSON_INT_NUMBER;
+    NT[i].val.entier = _val;
+    _lexData->tableSymboles = *NT;
+    
 }
 
 /**
@@ -154,7 +183,20 @@ void addIntSymbolToLexData(TLex *_lexData, const int _val)
  */
 void addRealSymbolToLexData(TLex *_lexData, const float _val)
 {
-    /****** A ECRIRE *******/
+    _lexData->tailleTableSymboles++;
+    TSymbole *NT=malloc(sizeof(TSymbole)*_lexData->tailleTableSymboles);
+    int i = 0;
+    if (_lexData->tailleTableSymboles>0)
+    {
+        for (i = 0; i <= _lexData->tailleTableSymboles-1; i++)
+        {
+                        NT[i]=*_lexData->tableSymboles;
+            _lexData->tableSymboles++;
+        }
+    }
+    NT[i].type = JSON_REAL_NUMBER;
+    NT[i].val.reel = _val;
+    _lexData->tableSymboles = NT;
 }
 
 /**
@@ -166,7 +208,20 @@ void addRealSymbolToLexData(TLex *_lexData, const float _val)
  */
 void addStringSymbolToLexData(TLex *_lexData, char *_val)
 {
-    /****** A ECRIRE *******/
+    _lexData->tailleTableSymboles++;
+    TSymbole **NT=malloc(sizeof(TSymbole)*_lexData->tailleTableSymboles);
+    int i = 0;
+    if (_lexData->tailleTableSymboles>0)
+    {
+        for (i = 0; i <= _lexData->tailleTableSymboles-1; i++)
+        {
+                        NT[i]=*_lexData->tableSymboles;
+            _lexData->tableSymboles++;
+        }
+    }
+    NT[i].type = JSON_STRING;
+    NT[i].val.chaine = strdup(_val);
+    _lexData->tableSymboles = *NT;
 }
 
 /**
@@ -187,8 +242,11 @@ int lex(TLex *_lexData)
     while (!fini)
     {
         symbole = *_lexData->startPos;
-        while (symbole == ' ')
+        while ((symbole == ' ' || symbole == '\n') && etat == 0)
         {
+            if(symbole == '\n'){
+                _lexData->nbLignes++;
+            }
             _lexData->startPos++;
             symbole = *_lexData->startPos;
         }
@@ -278,7 +336,12 @@ int lex(TLex *_lexData)
                 break;*/
             default:
                 if (isSep(symbole) == 1)
+                {
                     etat = 5;
+                    fini = 3;
+                    result = JSON_TRUE;
+                }
+
                 else
                     fini = 1;
             }
@@ -346,7 +409,11 @@ int lex(TLex *_lexData)
                 fini = 1;
             }*/
             if (isSep(symbole) == 1)
+            {
                 etat = 11;
+                fini = 3;
+                result = JSON_FALSE;
+            }
             else
                 fini = 1;
             break;
@@ -403,7 +470,12 @@ int lex(TLex *_lexData)
                 fini = 1;
             }*/
             if (isSep(symbole) == 1)
+            {
                 etat = 16;
+                fini = 3;
+                result = JSON_NULL;
+            }
+
             else
                 fini = 1;
             break;
@@ -573,7 +645,11 @@ int lex(TLex *_lexData)
                 break;
             default:
                 if (isSep(symbole) == 1)
+                {
                     etat = 31;
+                    fini = 3;
+                    result = JSON_INT_NUMBER;
+                }
                 else
                     fini = 1;
             }
@@ -598,7 +674,11 @@ int lex(TLex *_lexData)
                 break;
             default:
                 if (isSep(symbole) == 1)
+                {
                     etat = 31;
+                    fini = 3;
+                    result = JSON_INT_NUMBER;
+                }
                 else
                     fini = 1;
             }
@@ -659,7 +739,11 @@ int lex(TLex *_lexData)
                 break;
             default:
                 if (isSep(symbole) == 1)
+                {
                     etat = 34;
+                    fini = 3;
+                    result = JSON_REAL_NUMBER;
+                }
                 else
                     fini = 1;
             }
@@ -688,7 +772,12 @@ int lex(TLex *_lexData)
                 break;*/
             default:
                 if (isSep(symbole) == 1)
+                {
                     etat = 36;
+                    fini = 3;
+                    result = JSON_REAL_NUMBER;
+                }
+
                 else
                     fini = 1;
             }
@@ -725,10 +814,26 @@ int lex(TLex *_lexData)
         fprintf(stderr, "Erreur : etat %d inconnu\n", etat);
         return JSON_LEX_ERROR;
     default:
-        /*if (result>= JSON_STRING && result <= JSON_REAL_NUMBER)
+        if (result>= JSON_STRING && result <= JSON_REAL_NUMBER)
         {
-
-        }*/
+            char* truc=malloc(sizeof(char)*nbCaractere);
+            strncpy(truc,PosDeb,nbCaractere);
+            if(result == JSON_STRING)
+            {
+                addStringSymbolToLexData(_lexData,truc);
+            }
+            else if(result == JSON_INT_NUMBER)
+            {
+                int val=atoi(truc);
+                addIntSymbolToLexData(_lexData,val);
+            }
+            else
+            {
+                float val = atof(truc);
+                addRealSymbolToLexData(_lexData,val);
+            }
+            free(truc);
+        }
         return result;
     }
 }
@@ -755,8 +860,8 @@ int main()
         printf("lex()=%d\n", i);
         i = lex(lex_data);
     }
-    /*printLexData(lex_data);
-    deleteLexData(&lex_data);*/
+    printLexData(lex_data);
+    /*deleteLexData(&lex_data);*/
     free(test);
     return 0;
 }
