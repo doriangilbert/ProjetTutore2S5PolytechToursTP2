@@ -99,13 +99,13 @@ int isSep(const char _symb)
 TLex *initLexData(char *_data)
 {
     TLex *Truc = malloc(sizeof(TLex));
+    Truc->tailleTableSymboles = 100;
+    Truc->tableSymboles=malloc(sizeof(TSymbole)*Truc->tailleTableSymboles);
     Truc->data = malloc(sizeof(char) * strlen(_data) + 1);
     strcpy(Truc->data, _data);
     Truc->startPos = Truc->data;
     Truc->nbLignes = 0;
     Truc->nbSymboles = 0;
-    Truc->tableSymboles;
-    Truc->tailleTableSymboles = 0;
     return Truc;
 }
 
@@ -139,7 +139,7 @@ void printLexData(TLex *_lexData)
     printf("nbSymboles : %d\n",_lexData->nbSymboles);
     printf("tableSymboles :\n");
     int i=0;
-    for (i=0 ; i<_lexData->tailleTableSymboles; i++)
+    for (i=0 ; i<_lexData->nbSymboles; i++)
     {
         if(_lexData->tableSymboles[i].type == JSON_STRING) printf("Chaine : %s\n",_lexData->tableSymboles[i].val.chaine);
         else if(_lexData->tableSymboles[i].type == JSON_INT_NUMBER) printf("Entier : %d\n",_lexData->tableSymboles[i].val.entier);
@@ -157,21 +157,10 @@ void printLexData(TLex *_lexData)
  */
 void addIntSymbolToLexData(TLex *_lexData, const int _val)
 {
-    _lexData->tailleTableSymboles++;
-    TSymbole **NT=malloc(sizeof(TSymbole)*_lexData->tailleTableSymboles);
-    int i = 0;
-    if (_lexData->tailleTableSymboles>0)
-    {
-        for (i = 0; i <= _lexData->tailleTableSymboles-1; i++)
-        {
-                        NT[i]=*_lexData->tableSymboles;
-            _lexData->tableSymboles++;
-        }
-    }
-    NT[i].type = JSON_INT_NUMBER;
-    NT[i].val.entier = _val;
-    _lexData->tableSymboles = *NT;
-    
+    int i = _lexData->nbSymboles;
+    _lexData->tableSymboles[i].type = JSON_INT_NUMBER;
+    _lexData->tableSymboles[i].val.entier = _val;
+    _lexData->nbSymboles++;
 }
 
 /**
@@ -183,20 +172,10 @@ void addIntSymbolToLexData(TLex *_lexData, const int _val)
  */
 void addRealSymbolToLexData(TLex *_lexData, const float _val)
 {
-    _lexData->tailleTableSymboles++;
-    TSymbole *NT=malloc(sizeof(TSymbole)*_lexData->tailleTableSymboles);
-    int i = 0;
-    if (_lexData->tailleTableSymboles>0)
-    {
-        for (i = 0; i <= _lexData->tailleTableSymboles-1; i++)
-        {
-                        NT[i]=*_lexData->tableSymboles;
-            _lexData->tableSymboles++;
-        }
-    }
-    NT[i].type = JSON_REAL_NUMBER;
-    NT[i].val.reel = _val;
-    _lexData->tableSymboles = NT;
+    int i = _lexData->nbSymboles;
+    _lexData->tableSymboles[i].type = JSON_REAL_NUMBER;
+    _lexData->tableSymboles[i].val.reel = _val;
+    _lexData->nbSymboles++;
 }
 
 /**
@@ -208,20 +187,10 @@ void addRealSymbolToLexData(TLex *_lexData, const float _val)
  */
 void addStringSymbolToLexData(TLex *_lexData, char *_val)
 {
-    _lexData->tailleTableSymboles++;
-    TSymbole **NT=malloc(sizeof(TSymbole)*_lexData->tailleTableSymboles);
-    int i = 0;
-    if (_lexData->tailleTableSymboles>0)
-    {
-        for (i = 0; i <= _lexData->tailleTableSymboles-1; i++)
-        {
-                        NT[i]=*_lexData->tableSymboles;
-            _lexData->tableSymboles++;
-        }
-    }
-    NT[i].type = JSON_STRING;
-    NT[i].val.chaine = strdup(_val);
-    _lexData->tableSymboles = *NT;
+    int i = _lexData->nbSymboles;
+    _lexData->tableSymboles[i].type = JSON_STRING;
+    _lexData->tableSymboles[i].val.chaine = strdup(_val);
+    _lexData->nbSymboles++;
 }
 
 /**
@@ -248,6 +217,7 @@ int lex(TLex *_lexData)
                 _lexData->nbLignes++;
             }
             _lexData->startPos++;
+            PosDeb = _lexData->startPos;
             symbole = *_lexData->startPos;
         }
         switch (etat)
@@ -808,7 +778,9 @@ int lex(TLex *_lexData)
     switch (fini)
     {
     case 1:
-        fprintf(stderr, "Erreur : caractere %c inconnu (etat %d)\n", symbole, etat);
+        if (symbole != '\0'){
+            fprintf(stderr, "Erreur : caractere %c inconnu (etat %d)\n", symbole, etat);
+        }
         return JSON_LEX_ERROR;
     case 2:
         fprintf(stderr, "Erreur : etat %d inconnu\n", etat);
@@ -816,8 +788,9 @@ int lex(TLex *_lexData)
     default:
         if (result>= JSON_STRING && result <= JSON_REAL_NUMBER)
         {
-            char* truc=malloc(sizeof(char)*nbCaractere);
+            char* truc=malloc(sizeof(char)*nbCaractere+1);
             strncpy(truc,PosDeb,nbCaractere);
+            printf("%s\n",truc);
             if(result == JSON_STRING)
             {
                 addStringSymbolToLexData(_lexData,truc);
