@@ -100,7 +100,11 @@ TLex *initLexData(char *_data)
 {
     TLex *Truc = malloc(sizeof(TLex));
     Truc->tailleTableSymboles = 100;
-    Truc->tableSymboles=malloc(sizeof(TSymbole)*Truc->tailleTableSymboles);
+    Truc->tableSymboles = malloc(sizeof(TSymbole) * Truc->tailleTableSymboles);
+    for (int i = 0; i < Truc->tailleTableSymboles; i++)
+    {
+        Truc->tableSymboles[i].type = (int)0;
+    }
     Truc->data = malloc(sizeof(char) * strlen(_data) + 1);
     strcpy(Truc->data, _data);
     Truc->startPos = Truc->data;
@@ -119,7 +123,16 @@ TLex *initLexData(char *_data)
  */
 void deleteLexData(TLex **_lexData)
 {
-    /*mdr*/
+    free((*_lexData)->data);
+    for (int i = 0; i < (*_lexData)->tailleTableSymboles; i++)
+    {
+        if ((*_lexData)->tableSymboles[i].type == JSON_STRING)
+        {
+            free((*_lexData)->tableSymboles[i].val.chaine);
+        }
+    }
+    free((*_lexData)->tableSymboles);
+    free((*_lexData));
 }
 
 /**
@@ -133,17 +146,20 @@ void deleteLexData(TLex **_lexData)
 void printLexData(TLex *_lexData)
 {
     printf("LexData:\n");
-    printf("data : %s\n",_lexData->data);
-    printf("startPos : %s\n",_lexData->startPos);
-    printf("nbLigne : %d\n",_lexData->nbLignes);
-    printf("nbSymboles : %d\n",_lexData->nbSymboles);
+    printf("data : %s\n", _lexData->data);
+    printf("startPos : %s\n", _lexData->startPos);
+    printf("nbLigne : %d\n", _lexData->nbLignes);
+    printf("nbSymboles : %d\n", _lexData->nbSymboles);
     printf("tableSymboles :\n");
-    int i=0;
-    for (i=0 ; i<_lexData->nbSymboles; i++)
+    int i = 0;
+    for (i = 0; i < _lexData->nbSymboles; i++)
     {
-        if(_lexData->tableSymboles[i].type == JSON_STRING) printf("Chaine : %s\n",_lexData->tableSymboles[i].val.chaine);
-        else if(_lexData->tableSymboles[i].type == JSON_INT_NUMBER) printf("Entier : %d\n",_lexData->tableSymboles[i].val.entier);
-        else printf("Reel : %f\n",_lexData->tableSymboles[i].val.reel);
+        if (_lexData->tableSymboles[i].type == JSON_STRING)
+            printf("Chaine : %s\n", _lexData->tableSymboles[i].val.chaine);
+        else if (_lexData->tableSymboles[i].type == JSON_INT_NUMBER)
+            printf("Entier : %d\n", _lexData->tableSymboles[i].val.entier);
+        else
+            printf("Reel : %f\n", _lexData->tableSymboles[i].val.reel);
     }
 }
 
@@ -187,10 +203,13 @@ void addRealSymbolToLexData(TLex *_lexData, const float _val)
  */
 void addStringSymbolToLexData(TLex *_lexData, char *_val)
 {
-    int i = _lexData->nbSymboles;
-    _lexData->tableSymboles[i].type = JSON_STRING;
-    _lexData->tableSymboles[i].val.chaine = strdup(_val);
-    _lexData->nbSymboles++;
+    if (_val != NULL)
+    {
+        int i = _lexData->nbSymboles;
+        _lexData->tableSymboles[i].type = JSON_STRING;
+        _lexData->tableSymboles[i].val.chaine = strdup(_val);
+        _lexData->nbSymboles++;
+    }
 }
 
 /**
@@ -213,7 +232,8 @@ int lex(TLex *_lexData)
         symbole = *_lexData->startPos;
         while ((symbole == ' ' || symbole == '\n') && etat == 0)
         {
-            if(symbole == '\n'){
+            if (symbole == '\n')
+            {
                 _lexData->nbLignes++;
             }
             _lexData->startPos++;
@@ -778,7 +798,8 @@ int lex(TLex *_lexData)
     switch (fini)
     {
     case 1:
-        if (symbole != '\0'){
+        if (symbole != '\0')
+        {
             fprintf(stderr, "Erreur : caractere %c inconnu (etat %d)\n", symbole, etat);
         }
         return JSON_LEX_ERROR;
@@ -786,24 +807,24 @@ int lex(TLex *_lexData)
         fprintf(stderr, "Erreur : etat %d inconnu\n", etat);
         return JSON_LEX_ERROR;
     default:
-        if (result>= JSON_STRING && result <= JSON_REAL_NUMBER)
+        if (result >= JSON_STRING && result <= JSON_REAL_NUMBER)
         {
-            char* truc=malloc(sizeof(char)*nbCaractere+1);
-            strncpy(truc,PosDeb,nbCaractere);
-            printf("%s\n",truc);
-            if(result == JSON_STRING)
+            char *truc = malloc(sizeof(char) * nbCaractere + 1);
+            strncpy(truc, PosDeb, nbCaractere);
+            truc[nbCaractere] = '\0';
+            if (result == JSON_STRING)
             {
-                addStringSymbolToLexData(_lexData,truc);
+                addStringSymbolToLexData(_lexData, truc);
             }
-            else if(result == JSON_INT_NUMBER)
+            else if (result == JSON_INT_NUMBER)
             {
-                int val=atoi(truc);
-                addIntSymbolToLexData(_lexData,val);
+                int val = atoi(truc);
+                addIntSymbolToLexData(_lexData, val);
             }
             else
             {
                 float val = atof(truc);
-                addRealSymbolToLexData(_lexData,val);
+                addRealSymbolToLexData(_lexData, val);
             }
             free(truc);
         }
@@ -817,8 +838,8 @@ int lex(TLex *_lexData)
  */
 int main()
 {
-    char *test;
-    int i;
+    char *test = " ";
+    int i = 0;
     TLex *lex_data;
 
     test = strdup("{\"obj1\": [ {\"obj2\": 12, \"obj3\":\"text1 \\\"and\\\" text2\"},\n {\"obj4\":314.32} ], \"obj5\": true }");
@@ -834,7 +855,7 @@ int main()
         i = lex(lex_data);
     }
     printLexData(lex_data);
-    /*deleteLexData(&lex_data);*/
+    deleteLexData(&lex_data);
     free(test);
     return 0;
 }
