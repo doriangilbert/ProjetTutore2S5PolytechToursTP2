@@ -13,6 +13,20 @@
 #include <stdlib.h>
 #include <assert.h>
 
+#define JSON_LEX_ERROR -1   /**< code d'erreur lexicale */
+#define JSON_TRUE 1         /**< entite lexicale true */
+#define JSON_FALSE 2        /**< entite lexicale false */
+#define JSON_NULL 3         /**< entite lexicale null */
+#define JSON_LCB 4          /**< entite lexicale { */
+#define JSON_RCB 5          /**< entite lexicale } */
+#define JSON_LB 6           /**< entite lexicale [ */
+#define JSON_RB 7           /**< entite lexicale ] */
+#define JSON_COMMA 8        /**< entite lexicale , */
+#define JSON_COLON 9        /**< entite lexicale : */
+#define JSON_STRING 10      /**<entite lexicale chaine de caracteres */
+#define JSON_INT_NUMBER 11  /**< entite lexicale nombre entier */
+#define JSON_REAL_NUMBER 12 /**< entite lexicale nombre reel */
+
 /**
  * \union TSymbole
  * \brief union permettant de  manipuler un entier/reel/chaine pour la table

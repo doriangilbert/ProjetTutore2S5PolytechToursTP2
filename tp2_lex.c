@@ -9,20 +9,6 @@
 
 #include "tp2_lex.h"
 
-#define JSON_LEX_ERROR -1   /**< code d'erreur lexicale */
-#define JSON_TRUE 1         /**< entite lexicale true */
-#define JSON_FALSE 2        /**< entite lexicale false */
-#define JSON_NULL 3         /**< entite lexicale null */
-#define JSON_LCB 4          /**< entite lexicale { */
-#define JSON_RCB 5          /**< entite lexicale } */
-#define JSON_LB 6           /**< entite lexicale [ */
-#define JSON_RB 7           /**< entite lexicale ] */
-#define JSON_COMMA 8        /**< entite lexicale , */
-#define JSON_COLON 9        /**< entite lexicale : */
-#define JSON_STRING 10      /**<entite lexicale chaine de caracteres */
-#define JSON_INT_NUMBER 11  /**< entite lexicale nombre entier */
-#define JSON_REAL_NUMBER 12 /**< entite lexicale nombre reel */
-
 /**
  * \fn int isSep(char _symb)
  * \brief fonction qui teste si un symbole fait partie des separateurs
@@ -63,19 +49,19 @@ int isSep(const char _symb)
  */
 TLex *initLexData(char *_data)
 {
-    TLex *Truc = malloc(sizeof(TLex));
-    Truc->tailleTableSymboles = 100;
-    Truc->tableSymboles = malloc(sizeof(TSymbole) * Truc->tailleTableSymboles);
-    for (int i = 0; i < Truc->tailleTableSymboles; i++)
+    TLex *_lex = malloc(sizeof(TLex));
+    _lex->tailleTableSymboles = 5;
+    _lex->tableSymboles = malloc(sizeof(TSymbole) * _lex->tailleTableSymboles);
+    for (int i = 0; i < _lex->tailleTableSymboles; i++)
     {
-        Truc->tableSymboles[i].type = (int)0;
+        _lex->tableSymboles[i].type = 0;
     }
-    Truc->data = malloc(sizeof(char) * strlen(_data) + 1);
-    strcpy(Truc->data, _data);
-    Truc->startPos = Truc->data;
-    Truc->nbLignes = 0;
-    Truc->nbSymboles = 0;
-    return Truc;
+    _lex->data = malloc(sizeof(char) * strlen(_data) + 1);
+    strcpy(_lex->data, _data);
+    _lex->startPos = _lex->data;
+    _lex->nbLignes = 0;
+    _lex->nbSymboles = 0;
+    return _lex;
 }
 
 /**
@@ -139,6 +125,11 @@ void printLexData(TLex *_lexData)
 void addIntSymbolToLexData(TLex *_lexData, const int _val)
 {
     int i = _lexData->nbSymboles;
+    if (_lexData->nbSymboles == _lexData->tailleTableSymboles)
+    {
+        _lexData->tailleTableSymboles++;
+        _lexData->tableSymboles=realloc(_lexData->tableSymboles, sizeof(TSymbole) * _lexData->tailleTableSymboles);
+    }
     _lexData->tableSymboles[i].type = JSON_INT_NUMBER;
     _lexData->tableSymboles[i].val.entier = _val;
     _lexData->nbSymboles++;
@@ -154,6 +145,11 @@ void addIntSymbolToLexData(TLex *_lexData, const int _val)
 void addRealSymbolToLexData(TLex *_lexData, const float _val)
 {
     int i = _lexData->nbSymboles;
+    if (_lexData->nbSymboles == _lexData->tailleTableSymboles)
+    {
+        _lexData->tailleTableSymboles++;
+        _lexData->tableSymboles=realloc(_lexData->tableSymboles, sizeof(TSymbole) * _lexData->tailleTableSymboles);
+    }
     _lexData->tableSymboles[i].type = JSON_REAL_NUMBER;
     _lexData->tableSymboles[i].val.reel = _val;
     _lexData->nbSymboles++;
@@ -171,6 +167,11 @@ void addStringSymbolToLexData(TLex *_lexData, char *_val)
     if (_val != NULL)
     {
         int i = _lexData->nbSymboles;
+        if (_lexData->nbSymboles == _lexData->tailleTableSymboles)
+        {
+            _lexData->tailleTableSymboles++;
+            _lexData->tableSymboles=realloc(_lexData->tableSymboles, sizeof(TSymbole) * _lexData->tailleTableSymboles);
+        }
         _lexData->tableSymboles[i].type = JSON_STRING;
         _lexData->tableSymboles[i].val.chaine = strdup(_val);
         _lexData->nbSymboles++;
